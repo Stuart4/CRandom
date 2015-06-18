@@ -23,7 +23,16 @@ crandom_err(char *msg)
 static void
 crandom_base64(unsigned char* byte_to_encode)
 {
-	*byte_to_encode = *byte_to_encode;
+	int num = (int) *byte_to_encode;
+	num %= 62;
+
+	if (num < 26) {
+		*byte_to_encode = 'a' + num;
+	} else if (num < 52) {
+		*byte_to_encode = 'A' + num - 26;
+	} else {
+		*byte_to_encode = '0' + num - 52;
+	}
 }
 
 static ssize_t
