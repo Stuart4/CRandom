@@ -20,19 +20,32 @@ crandom_err(char *msg)
 	pr_err("crandom: %s\n", msg);
 }
 
-static void
-crandom_base64(unsigned char* byte_to_encode)
+static char
+crandom_encode(unsigned int num)
 {
-	int num = (int) *byte_to_encode;
 	num %= 62;
 
 	if (num < 26) {
-		*byte_to_encode = 'a' + num;
+		return 'a' + num;
 	} else if (num < 52) {
-		*byte_to_encode = 'A' + num - 26;
+		return 'A' + num - 26;
 	} else {
-		*byte_to_encode = '0' + num - 52;
+		return '0' + num - 52;
 	}
+}
+
+static void
+crandom_get_char(char *bucket)
+{
+	unsigned int val;
+
+	for (;;) {
+		prandom_bytes(&val, sizeof(val));
+		if (val <= 248)
+			break;
+	}
+
+	*bucket = crandom_encode(val);
 }
 
 static ssize_t
@@ -43,12 +56,9 @@ crandom_read(struct file *filp, char *buffer,
 	char *gen_buf = (char *) kmalloc(length, GFP_KERNEL);
 
 	for (i = 0; i < length; i++) {
-		get_random_bytes(&(gen_buf[i]), sizeof(char));
-		crandom_base64(&gen_buf[i]);
+		crandom_get_char(gen_buf + i);
 	}
 
-	if (*offset != 0)
-		return 0;
 
 	if (copy_to_user(buffer, gen_buf, length))
 		return -EINVAL;
