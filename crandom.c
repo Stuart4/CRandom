@@ -5,6 +5,7 @@
 #include <linux/uaccess.h>
 #include <linux/miscdevice.h>
 #include <linux/slab.h>
+#include <linux/random.h>
 
 #define BUFFER_SIZE 12
 #define DEBUG
@@ -33,7 +34,7 @@ crandom_read(struct file *filp, char *buffer,
 	char *gen_buf = (char *) kmalloc(length, GFP_KERNEL);
 
 	for (i = 0; i < length; i++) {
-		gen_buf[i] = 'a' + i;
+		get_random_bytes(&(gen_buf[i]), sizeof(char));
 		crandom_base64(&gen_buf[i]);
 	}
 
