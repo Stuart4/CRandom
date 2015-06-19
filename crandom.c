@@ -71,14 +71,19 @@ crandom_read(struct file *filp, char *buffer,
 		size_t length, loff_t *offset)
 {
 	int i;
+	int ret = length;
 	char *gen_buf = kmalloc(length, GFP_KERNEL);
 
 	for (i = 0; i < length; i++)
 		crandom_get_char(gen_buf + i);
 
-	if (copy_to_user(buffer, gen_buf, length))
-		return -EFAULT;
+	if (copy_to_user(buffer, gen_buf, length)) {
+		ret = -EFAULT;
+		goto exit;
+	}
 
+exit:
+	kfree(gen_buf);
 	return length;
 }
 
